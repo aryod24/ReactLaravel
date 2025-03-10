@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import CreateBarang from "./CreateBarang";
+import DetailBarang from "./DetailBarang";
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -40,9 +41,10 @@ function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map((product) => (
           <div
-            key={product.barang_id}
-            className="max-w-sm rounded overflow-hidden shadow-lg bg-white"
-          >
+          key={product.barang_id}
+          className="max-w-sm rounded overflow-hidden shadow-lg bg-white"
+        >
+          <Link to={`/detail/${product.barang_id}`}>
             <img
               className="w-full h-48 object-cover"
               src={product.transaksi}
@@ -57,7 +59,8 @@ function Home() {
                 <span className="font-medium">Harga Jual:</span> {product.harga_jual}
               </p>
             </div>
-          </div>
+          </Link>
+        </div>        
         ))}
       </div>
 
@@ -74,6 +77,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreateBarang />} />
+        <Route path="/detail/:id" element={<DetailBarang />} />
       </Routes>
     </Router>
   );
