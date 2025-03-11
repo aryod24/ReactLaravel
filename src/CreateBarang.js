@@ -1,28 +1,63 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
+function InputField({ label, type, id, value, onChange, required = true }) {
+  return (
+    <div className="mb-4">
+      <label className="block text-gray-700 font-medium mb-2" htmlFor={id}>
+        {label}
+      </label>
+      <input
+        type={type}
+        id={id}
+        value={type === "file" ? undefined : value} // Files don't need a value
+        onChange={onChange}
+        className="p-2 border border-gray-300 rounded w-full"
+        required={required}
+      />
+    </div>
+  );
+}
+
 function CreateBarang() {
-  const [barangNama, setBarangNama] = useState("");
-  const [hargaBeli, setHargaBeli] = useState("");
-  const [hargaJual, setHargaJual] = useState("");
-  const [transaksi, setTransaksi] = useState(null);
+  const [formData, setFormData] = useState({
+    barangNama: "",
+    hargaBeli: "",
+    hargaJual: "",
+    transaksi: null,
+  });
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
+
+  const inputFields = [
+    { label: "Barang Nama", type: "text", id: "barangNama" },
+    { label: "Harga Beli", type: "number", id: "hargaBeli" },
+    { label: "Harga Jual", type: "number", id: "hargaJual" },
+    { label: "Transaksi (File Upload)", type: "file", id: "transaksi" },
+  ];
+
+  const handleInputChange = (e) => {
+    const { id, value, files } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: files ? files[0] : value,
+    }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMessage("");
 
-    const formData = new FormData();
-    formData.append("barang_nama", barangNama);
-    formData.append("harga_beli", hargaBeli);
-    formData.append("harga_jual", hargaJual);
-    formData.append("transaksi", transaksi);
+    const payload = new FormData();
+    payload.append("barang_nama", formData.barangNama);
+    payload.append("harga_beli", formData.hargaBeli);
+    payload.append("harga_jual", formData.hargaJual);
+    payload.append("transaksi", formData.transaksi);
 
     fetch("http://localhost/PWL_POS/public/api/barangs", {
       method: "POST",
-      body: formData,
+      body: payload,
     })
       .then((response) => response.json())
       .then((data) => {
@@ -30,11 +65,8 @@ function CreateBarang() {
           setErrorMessage(data.message);
         } else {
           alert("Barang berhasil dibuat!");
-          setBarangNama("");
-          setHargaBeli("");
-          setHargaJual("");
-          setTransaksi(null);
-          navigate("/"); 
+          setFormData({ barangNama: "", hargaBeli: "", hargaJual: "", transaksi: null });
+          navigate("/");
         }
       })
       .catch((error) => {
@@ -65,60 +97,16 @@ function CreateBarang() {
           </div>
         )}
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="barangNama">
-            Barang Nama
-          </label>
-          <input
-            type="text"
-            id="barangNama"
-            value={barangNama}
-            onChange={(e) => setBarangNama(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-full"
-            required
+        {inputFields.map(({ label, type, id }) => (
+          <InputField
+            key={id}
+            label={label}
+            type={type}
+            id={id}
+            value={formData[id] || ""}
+            onChange={handleInputChange}
           />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="hargaBeli">
-            Harga Beli
-          </label>
-          <input
-            type="number"
-            id="hargaBeli"
-            value={hargaBeli}
-            onChange={(e) => setHargaBeli(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-full"
-            required
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="hargaJual">
-            Harga Jual
-          </label>
-          <input
-            type="number"
-            id="hargaJual"
-            value={hargaJual}
-            onChange={(e) => setHargaJual(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-full"
-            required
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="transaksi">
-            Transaksi (File Upload)
-          </label>
-          <input
-            type="file"
-            id="transaksi"
-            onChange={(e) => setTransaksi(e.target.files[0])}
-            className="p-2 border border-gray-300 rounded w-full"
-            required
-          />
-        </div>
+        ))}
 
         <button
           type="submit"
